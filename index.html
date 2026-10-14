@@ -43,13 +43,8 @@
 
     <!-- ÉTAPE 2 : QUESTIONNAIRE MAGIQUE -->
     <div id="stepQuiz" class="hidden text-left space-y-5">
-      <div class="text-center pb-2 border-b border-slate-800">
-        <span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold text-xs px-3 py-1 rounded-full uppercase tracking-wider">Piège Activé</span>
-        <p class="text-xs text-slate-400 mt-2">Appuie sur n'importe quelle touche de ton clavier pour répondre...</p>
-      </div>
-
       <div class="space-y-4">
-        <div class="flex items-center justify-between text-xs text-slate-400 font-medium">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-medium pb-2 border-b border-slate-800">
           <span id="qProgress">Question 1/1</span>
           <span class="text-indigo-400">Simulation active</span>
         </div>
@@ -123,7 +118,6 @@
         if (e) e.preventDefault();
         dodgeCount++;
         
-        // Amplitude de déplacement fortement augmentée pour fuir efficacement
         const randomX = (Math.random() - 0.5) * 280;
         const randomY = (Math.random() - 0.5) * 140;
         btnYes.style.transform = `translate(${randomX}px, ${randomY}px)`;
