@@ -30,12 +30,13 @@
         <p id="viewSubtitle" class="text-slate-400 text-sm mt-2"></p>
       </div>
 
-      <div id="buttonsArea" class="relative h-24 w-full flex items-center justify-center gap-6 mt-6">
-        <button id="btnYes" class="btn-yes-anim absolute px-6 py-3 bg-indigo-600 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 cursor-pointer select-none text-sm z-20">
-          OUI 🚀
-        </button>
-        <button id="btnNo" onclick="triggerTrap()" class="absolute px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-2xl shadow-lg shadow-rose-600/30 cursor-pointer text-sm z-10 transition-all active:scale-95">
+      <!-- Boutons bien distincts côte à côte -->
+      <div id="buttonsArea" class="relative h-28 w-full flex items-center justify-center gap-12 mt-6">
+        <button id="btnNo" onclick="triggerTrap()" class="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-2xl shadow-lg shadow-rose-600/30 cursor-pointer text-sm z-10 transition-all active:scale-95">
           NON ❌
+        </button>
+        <button id="btnYes" class="btn-yes-anim px-6 py-3 bg-indigo-600 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 cursor-pointer select-none text-sm z-20">
+          OUI 🚀
         </button>
       </div>
     </div>
@@ -92,11 +93,9 @@
 
     let dodgeCount = 0;
     const maxDodges = 3;
-    let yesX = -60, yesY = 0;
     let currentQIndex = 0, charIndex = 0;
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Charger la configuration depuis l'URL si elle existe
       const urlParams = new URLSearchParams(window.location.search);
       const dataParam = urlParams.get('data');
       if (dataParam) {
@@ -123,14 +122,15 @@
         if (dodgeCount >= maxDodges) return;
         if (e) e.preventDefault();
         dodgeCount++;
-        yesX = yesX <= 0 ? 70 : -70;
-        yesY = yesY === 0 ? (Math.random() > 0.5 ? 25 : -25) : -yesY;
-        btnYes.style.transform = `translate(${yesX}px, ${yesY}px)`;
+        
+        // Déplacement aléatoire en mode relatif
+        const randomX = (Math.random() - 0.5) * 180;
+        const randomY = (Math.random() - 0.5) * 80;
+        btnYes.style.transform = `translate(${randomX}px, ${randomY}px)`;
 
         if (dodgeCount >= maxDodges) {
           btnYes.style.opacity = '0';
           btnYes.style.pointerEvents = 'none';
-          document.getElementById('btnNo').style.transform = 'translateX(0px)';
         }
       };
 
