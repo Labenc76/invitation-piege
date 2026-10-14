@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Éditeur - Invitation Piège</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+  </style>
+</head>
+<body class="h-full flex flex-col items-center justify-center p-4 bg-slate-950">
+
+  <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6">
+    <div class="text-center">
+      <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Générateur de Blague</span>
+      <h1 class="text-2xl font-black text-white mt-2">Crée ton invitation piège</h1>
+      <p class="text-slate-400 text-sm mt-1">Personnalise les textes et obtiens ton lien secret.</p>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+      <div class="space-y-3 bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+        <h2 class="text-xs font-bold text-indigo-400 uppercase">1. Message initial</h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Titre de l'invitation</label>
+          <input type="text" id="cfgTitle" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" value="Viens-tu à ma soirée vendredi prochain ? 🍕">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Sous-titre</label>
+          <input type="text" id="cfgSubtitle" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" value="Sois franc(he), ta réponse est très importante pour l'organisation !">
+        </div>
+      </div>
+
+      <div class="space-y-3 bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-indigo-400 uppercase">2. Questions & Réponses</h2>
+          <button onclick="addQuestion()" class="text-xs bg-slate-800 hover:bg-slate-700 text-indigo-300 px-2 py-1 rounded-lg border border-slate-700 cursor-pointer">+ Ajouter</button>
+        </div>
+        <div id="questionsContainer" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- Bouton de génération -->
+    <button onclick="generateLink()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-2xl text-sm transition-all shadow-lg shadow-indigo-600/30 cursor-pointer">
+      Générer et copier le lien de partage 🔗
+    </button>
+
+    <!-- Résultat -->
+    <div id="resultBox" class="hidden space-y-2 bg-slate-950 border border-indigo-500/30 p-4 rounded-2xl">
+      <p class="text-xs font-semibold text-indigo-400">Ton lien secret est prêt :</p>
+      <input type="text" id="shareLinkInput" readonly class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 select-all">
+    </div>
+  </div>
+
+  <script>
+    let prankData = {
+      title: "Viens-tu à ma soirée vendredi prochain ? 🍕",
+      subtitle: "Sois franc(he), ta réponse est très importante pour l'organisation !",
+      questions: [
+        { q: "Pourquoi as-tu fini par cliquer sur NON ?", a: "Parce que le bouton OUI s'enfuyait tout le temps ! Mais au fond, c'est évident que je viens !" },
+        { q: "Qu'est-ce que tu amènes à boire et à manger ?", a: "Pizzas pour tout le monde et mes meilleures boissons, c'est offert par la maison !" }
+      ]
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderInputs();
+    });
+
+    function renderInputs() {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+      prankData.questions.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2";
+        div.innerHTML = `
+          <div class="flex justify-between text-[11px] font-bold text-slate-400">
+            <span>Question ${idx + 1}</span>
+            ${prankData.questions.length > 1 ? `<button onclick="removeQuestion(\${idx})" class="text-rose-400 cursor-pointer">Supprimer</button>` : ''}
+          </div>
+          <input type="text" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white" value="${escapeHtml(item.q)}" oninput="prankData.questions[${idx}].q = this.value">
+          <textarea class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 h-14 resize-none" oninput="prankData.questions[${idx}].a = this.value">${escapeHtml(item.a)}</textarea>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addQuestion() {
+      prankData.questions.push({ q: "Nouvelle question ?", a: "Réponse automatique !" });
+      renderInputs();
+    }
+
+    function removeQuestion(idx) {
+      prankData.questions.splice(idx, 1);
+      renderInputs();
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function generateLink() {
+      prankData.title = document.getElementById('cfgTitle').value;
+      prankData.subtitle = document.getElementById('cfgSubtitle').value;
+
+      try {
+        const jsonStr = JSON.stringify(prankData);
+        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+        
+        // Crée le lien pointant vers index.html (la blague)
+        const baseUrl = window.location.origin + window.location.pathname.replace('editeur.html', '');
+        const shareURL = baseUrl + 'index.html?data=' + encoded;
+
+        document.getElementById('shareLinkInput').value = shareURL;
+        document.getElementById('resultBox').classList.remove('hidden');
+
+        navigator.clipboard.writeText(shareURL);
+        alert('Lien copié dans le presse-papier ! Envoie-le à ton ami(e).');
+      } catch (e) {
+        alert("Erreur lors de la génération.");
+      }
+    }
+  </script>
+</body>
+</html>
