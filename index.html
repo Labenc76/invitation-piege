@@ -96,13 +96,13 @@
       const dataParam = urlParams.get('data');
       if (dataParam) {
         try {
-          const decoded = decodeURIComponent(escape(atob(dataParam)));
+          const decoded = decodeURIComponent(atob(dataParam).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
           const parsed = JSON.parse(decoded);
           if (parsed && parsed.title && parsed.questions) {
             prankData = parsed;
           }
         } catch (e) {
-          console.error("Erreur de décodage", e);
+          console.error("Erreur de décodage des émojis", e);
         }
       }
 
