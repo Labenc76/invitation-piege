@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Créateur d'Invitation Piège Interactive</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 9999px;
+    }
+    .btn-yes-anim {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col md:flex-row overflow-hidden bg-slate-950 text-slate-100">
+
+  <!-- PANNEAU DE CONFIGURATION (GAUCHE) -->
+  <aside class="w-full md:w-5/12 lg:w-4/12 h-full flex flex-col border-r border-slate-800 bg-slate-900/90 backdrop-blur-md z-20">
+    <!-- Header Sidebar -->
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-xl shadow-inner">
+          🎭
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight text-white">Invitation Piège</h1>
+          <p class="text-xs text-slate-400">Éditeur & Générateur de Blague</p>
+        </div>
+      </div>
+      <button id="btnLaunchFullscreen" onclick="openFullscreenPrank()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer">
+        <span>Lancer la blague</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </button>
+    </div>
+
+    <!-- Formulaire d'édition (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+      
+      <!-- Section 1 : Titre & Message -->
+      <div class="space-y-4 bg-slate-800/40 border border-slate-800 p-4 rounded-2xl">
+        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+          <span>1. L'Invitation initiale</span>
+        </h2>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Titre de l'invitation</label>
+          <input type="text" id="cfgTitle" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Soirée pizza vendredi ?" value="Viens-tu à ma soirée vendredi prochain ? 🍕">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Sous-titre ou explication</label>
+          <input type="text" id="cfgSubtitle" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Réponds honnêtement..." value="Sois franc(he), ta réponse est très importante pour l'organisation !">
+        </div>
+      </div>
+
+      <!-- Section 2 : Questions et Réponses magiques -->
+      <div class="space-y-4 bg-slate-800/40 border border-slate-800 p-4 rounded-2xl">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">2. Questions & Réponses Pièges</h2>
+          <button onclick="addQuestion()" class="text-xs bg-slate-800 hover:bg-slate-700 text-indigo-300 px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition-colors flex items-center gap-1 cursor-pointer">
+            <span>+ Ajouter</span>
+          </button>
+        </div>
+        <p class="text-xs text-slate-400">Chaque appui sur n'importe quelle touche du clavier tapera automatiquement la réponse programmée.</p>
+
+        <div id="questionsContainer" class="space-y-4">
+          <!-- Les cartes de questions seront générées ici par JS -->
+        </div>
+      </div>
+
+      <!-- Section 3 : Actions & Exportation -->
+      <div class="space-y-3 pt-2">
+        <button onclick="exportJSON()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span>Copier le lien de partage</span>
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ZONE DE PRÉVISUALISATION (DROITE) -->
+  <main class="flex-1 h-full bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <!-- Fond décoratif avec effets de halo -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Badge Mode Prévisualisation -->
+    <div id="previewBadge" class="absolute top-6 left-6 z-10 flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-full px-3.5 py-1.5 text-xs text-slate-400 backdrop-blur-md">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>Prévisualisation en direct</span>
+    </div>
+
+    <!-- Bouton pour réinitialiser la prévisualisation -->
+    <button id="btnResetPreview" onclick="resetSimulator()" class="absolute top-6 right-6 z-10 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur-md transition-all flex items-center gap-2 cursor-pointer">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <span>Réinitialiser la démo</span>
+    </button>
+
+    <!-- CARTE DE L'INVITATION (SIMULATEUR) -->
+    <div id="prankCard" class="bg-slate-900/90 border border-slate-800/80 shadow-2xl rounded-3xl p-8 max-w-md w-full text-center relative z-10 backdrop-blur-xl transition-all duration-500">
+      
+      <!-- ÉTAPE 1 : INVITATION AVEC BOUTONS PIÈGES -->
+      <div id="stepInvite" class="space-y-6">
+        <div>
+          <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold text-xs px-3 py-1 rounded-full uppercase tracking-wider">Invitation</span>
+          <h2 id="viewTitle" class="text-2xl font-bold text-white mt-4 leading-snug">--</h2>
+          <p id="viewSubtitle" class="text-slate-400 text-sm mt-2">--</p>
+        </div>
+
+        <!-- Espace réservé pour les boutons avec limites de déplacement -->
+        <div id="buttonsArea" class="relative h-24 w-full flex items-center justify-center gap-6 mt-6">
+          
+          <!-- Bouton OUI fuyant -->
+          <button id="btnYes" class="btn-yes-anim absolute px-6 py-3 bg-indigo-600 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 cursor-pointer select-none text-sm z-20">
+            OUI 🚀
+          </button>
+
+          <!-- Bouton NON fixe -->
+          <button id="btnNo" onclick="triggerTrap()" class="absolute px-6 py-3 bg-rose-600 text-white font-semibold rounded-2xl shadow-lg shadow-rose-600/30 cursor-pointer text-sm z-10 transition-all hover:bg-rose-500 active:scale-95">
+            NON ❌
+          </button>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : QUESTIONNAIRE MAGIQUE AU CLAVIER -->
+      <div id="stepQuiz" class="hidden text-left space-y-5">
+        <div class="text-center pb-2 border-b border-slate-800">
+          <span id="quizBadge" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold text-xs px-3 py-1 rounded-full uppercase tracking-wider">Piège Activé</span>
+          <p class="text-xs text-slate-400 mt-2">Appuie sur n'importe quelle touche de ton clavier pour répondre...</p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-medium">
+            <span id="qProgress">Question 1/1</span>
+            <span class="text-indigo-400">Simulation active</span>
+          </div>
+
+          <h3 id="currentQuestionText" class="text-base font-bold text-white">--</h3>
+
+          <div class="relative">
+            <textarea id="fakeTextarea" readonly class="w-full h-32 bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-slate-200 text-sm focus:outline-none focus:border-indigo-500/50 resize-none shadow-inner custom-scrollbar" placeholder="Commence à taper sur ton clavier..."></textarea>
+            <div id="typingIndicator" class="hidden absolute bottom-3 right-3 flex items-center gap-1 bg-indigo-950/80 border border-indigo-800 px-2 py-1 rounded-md text-[10px] text-indigo-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+              <span>Saisie magique...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bouton de fin quand toutes les questions sont répondues -->
+        <button id="btnNextQuestion" onclick="nextQuestion()" class="hidden w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/20 cursor-pointer text-center">
+          Question suivante ➔
+        </button>
+      </div>
+
+      <!-- ÉTAPE 3 : CONCLUSION -->
+      <div id="stepFinish" class="hidden text-center space-y-4 py-4">
+        <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 text-3xl mx-auto">
+          🎉
+        </div>
+        <h3 class="text-xl font-bold text-white">Merci pour tes réponses !</h3>
+        <p class="text-sm text-slate-400">Tout a été enregistré avec succès (et tu as dit oui à tout) ! 😉</p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // --- ÉTAT DE L'APPLICATION ---
+    let prankData = {
+      title: "Viens-tu à ma soirée vendredi prochain ? 🍕",
+      subtitle: "Sois franc(he), ta réponse est très importante pour l'organisation !",
+      questions: [
+        {
+          q: "Pourquoi as-tu fini par cliquer sur NON ?",
+          a: "Parce que le bouton OUI s'enfuyait tout le temps ! Mais au fond, c'est évident que je viens !"
+        },
+        {
+          q: "Qu'est-ce que tu amènes à boire et à manger ?",
+          a: "Pizzas pour tout le monde et mes meilleures boissons, c'est offert par la maison !"
+        }
+      ]
+    };
+
+    // État du simulateur
+    let dodgeCount = 0;
+    const maxDodges = 3;
+    let yesX = -60;
+    let yesY = 0;
+    
+    let currentQIndex = 0;
+    let charIndex = 0;
+    let isTyping = false;
+
+    // --- INITIALISATION AU CHARGEMENT ---
+    window.addEventListener('DOMContentLoaded', () => {
+      // Charger depuis les paramètres d'URL si présent (partage de lien)
+      loadFromURL();
+
+      // Remplir le formulaire
+      document.getElementById('cfgTitle').value = prankData.title;
+      document.getElementById('cfgSubtitle').value = prankData.subtitle;
+
+      // Écouteurs pour la mise à jour dynamique du formulaire
+      document.getElementById('cfgTitle').addEventListener('input', (e) => {
+        prankData.title = e.target.value;
+        updateView();
+      });
+      document.getElementById('cfgSubtitle').addEventListener('input', (e) => {
+        prankData.subtitle = e.target.value;
+        updateView();
+      });
+
+      renderQuestionInputs();
+      resetSimulator();
+      setupDodgeEvents();
+    });
+
+    // --- GESTION DU FORMULAIRE DE CONFIGURATION ---
+    function renderQuestionInputs() {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      prankData.questions.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-700/60 p-3.5 rounded-xl space-y-3 relative group";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-400 uppercase">Question ${idx + 1}</span>
+            ${prankData.questions.length > 1 ? `
+              <button onclick="removeQuestion(${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-medium cursor-pointer">Supprimer</button>
+            ` : ''}
+          </div>
+          <div>
+            <input type="text" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" 
+              placeholder="Question posée" value="${escapeHtml(item.q)}" oninput="updateQuestionText(${idx}, 'q', this.value)">
+          </div>
+          <div>
+            <textarea class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 h-16 resize-none custom-scrollbar" 
+              placeholder="Réponse automatique qui sera tapée" oninput="updateQuestionText(${idx}, 'a', this.value)">${escapeHtml(item.a)}</textarea>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function addQuestion() {
+      prankData.questions.push({
+        q: "Nouvelle question ?",
+        a: "Réponse automatique de test !"
+      });
+      renderQuestionInputs();
+      resetSimulator();
+    }
+
+    function removeQuestion(index) {
+      if (prankData.questions.length <= 1) return;
+      prankData.questions.splice(index, 1);
+      renderQuestionInputs();
+      resetSimulator();
+    }
+
+    function updateQuestionText(index, field, val) {
+      prankData.questions[index][field] = val;
+      updateView();
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // --- LOGIQUE D'ÉQUIVATION DU BOUTON OUI ---
+    function setupDodgeEvents() {
+      const btnYes = document.getElementById('btnYes');
+
+      const handleDodge = (e) => {
+        if (dodgeCount >= maxDodges) return;
+        if (e) e.preventDefault();
+
+        dodgeCount++;
+
+        // Calculer l'opposé exact pour le saut
+        yesX = yesX <= 0 ? 70 : -70;
+        yesY = yesY === 0 ? (Math.random() > 0.5 ? 25 : -25) : -yesY;
+
+        btnYes.style.transform = `translate(${yesX}px, ${yesY}px)`;
+
+        // Disparition au bout de 3 essais
+        if (dodgeCount >= maxDodges) {
+          btnYes.style.opacity = '0';
+          btnYes.style.pointerEvents = 'none';
+
+          // Repositionner subtilement le bouton NON au centre
+          const btnNo = document.getElementById('btnNo');
+          btnNo.style.transform = 'translateX(0px)';
+        }
+      };
+
+      btnYes.addEventListener('mouseenter', handleDodge);
+      btnYes.addEventListener('touchstart', handleDodge, { passive: false });
+      btnYes.addEventListener('click', handleDodge);
+    }
+
+    // --- LOGIQUE DU DÉCLENCHEMENT DU PIÈGE (BOUTON NON) ---
+    function triggerTrap() {
+      document.getElementById('stepInvite').classList.add('hidden');
+      document.getElementById('stepQuiz').classList.remove('hidden');
+      
+      currentQIndex = 0;
+      charIndex = 0;
+      loadCurrentQuestion();
+    }
+
+    function loadCurrentQuestion() {
+      if (currentQIndex >= prankData.questions.length) {
+        document.getElementById('stepQuiz').classList.add('hidden');
+        document.getElementById('stepFinish').classList.remove('hidden');
+        return;
+      }
+
+      const qItem = prankData.questions[currentQIndex];
+      document.getElementById('qProgress').textContent = `Question ${currentQIndex + 1}/${prankData.questions.length}`;
+      document.getElementById('currentQuestionText').textContent = qItem.q || "Question sans titre";
+      
+      const textarea = document.getElementById('fakeTextarea');
+      textarea.value = '';
+      charIndex = 0;
+      
+      document.getElementById('btnNextQuestion').classList.add('hidden');
+    }
+
+    // Effet de frappe au clavier
+    window.addEventListener('keydown', (e) => {
+      const stepQuiz = document.getElementById('stepQuiz');
+      if (stepQuiz.classList.contains('hidden')) return;
+
+      // Ignorer les touches spéciales isolées
+      if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) return;
+
+      // Empêcher le défilement si Espace ou Fleches
+      if (["Space", "ArrowUp", "ArrowDown"].includes(e.code)) {
+        e.preventDefault();
+      }
+
+      const qItem = prankData.questions[currentQIndex];
+      if (!qItem) return;
+
+      const targetText = qItem.a || "";
+      const textarea = document.getElementById('fakeTextarea');
+      const indicator = document.getElementById('typingIndicator');
+
+      if (charIndex < targetText.length) {
+        indicator.classList.remove('hidden');
+        // Ajouter un caractère par appui de touche
+        textarea.value += targetText[charIndex];
+        charIndex++;
+        textarea.scrollTop = textarea.scrollHeight;
+
+        // Quand la réponse est entièrement saisie
+        if (charIndex >= targetText.length) {
+          indicator.classList.add('hidden');
+          document.getElementById('btnNextQuestion').classList.remove('hidden');
+        }
+      }
+    });
+
+    function nextQuestion() {
+      currentQIndex++;
+      loadCurrentQuestion();
+    }
+
+    // --- MISE À JOUR ET RÉINITIALISATION ---
+    function updateView() {
+      document.getElementById('viewTitle').textContent = prankData.title || "Titre de l'invitation";
+      document.getElementById('viewSubtitle').textContent = prankData.subtitle || "";
+    }
+
+    function resetSimulator() {
+      dodgeCount = 0;
+      yesX = -60;
+      yesY = 0;
+
+      const btnYes = document.getElementById('btnYes');
+      btnYes.style.opacity = '1';
+      btnYes.style.pointerEvents = 'auto';
+      btnYes.style.transform = `translate(${yesX}px, ${yesY}px)`;
+
+      const btnNo = document.getElementById('btnNo');
+      btnNo.style.transform = 'translateX(60px)';
+
+      document.getElementById('stepInvite').classList.remove('hidden');
+      document.getElementById('stepQuiz').classList.add('hidden');
+      document.getElementById('stepFinish').classList.add('hidden');
+
+      updateView();
+    }
+
+    // --- MODES D'AFFICHAGE & PARTAGE ---
+    function openFullscreenPrank() {
+      // Masquer la sidebar pour basculer en mode présentation plein écran
+      const aside = document.querySelector('aside');
+      aside.classList.add('hidden');
+      document.getElementById('previewBadge').classList.add('hidden');
+
+      // Ajouter un bouton discret pour revenir à l'éditeur
+      let exitBtn = document.getElementById('btnExitFullscreen');
+      if (!exitBtn) {
+        exitBtn = document.createElement('button');
+        exitBtn.id = 'btnExitFullscreen';
+        exitBtn.className = 'fixed bottom-4 left-4 z-50 bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 backdrop-blur-md transition-all';
+        exitBtn.innerHTML = '← Revenir à l\'éditeur';
+        exitBtn.onclick = () => {
+          aside.classList.remove('hidden');
+          document.getElementById('previewBadge').classList.remove('hidden');
+          exitBtn.remove();
+          resetSimulator();
+        };
+        document.body.appendChild(exitBtn);
+      }
+
+      resetSimulator();
+    }
+
+    // Exportation / Partage via l'URL encodée
+    function exportJSON() {
+      const jsonStr = JSON.stringify(prankData);
+      const encoded = btoa(encodeURIComponent(jsonStr));
+      const shareURL = window.location.origin + window.location.pathname + '?cfg=' + encoded;
+
+      // Copie dans le presse-papier avec méthode de secours
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareURL).then(() => {
+          alert('Lien de partage copié dans le presse-papier !');
+        });
+      } else {
+        const dummy = document.createElement('input');
+        document.body.appendChild(dummy);
+        dummy.value = shareURL;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        alert('Lien de partage copié dans le presse-papier !');
+      }
+    }
+
+    function loadFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const cfgParam = urlParams.get('cfg');
+      if (cfgParam) {
+        try {
+          const decoded = decodeURIComponent(atob(cfgParam));
+          const parsed = JSON.parse(decoded);
+          if (parsed && parsed.title && parsed.questions) {
+            prankData = parsed;
+          }
+        } catch(e) {
+          console.error("Erreur de lecture de l'URL de configuration", e);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
