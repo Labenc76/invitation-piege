@@ -28,7 +28,7 @@
 <body class="h-full flex flex-col md:flex-row overflow-hidden bg-slate-950 text-slate-100">
 
   <!-- PANNEAU DE CONFIGURATION (GAUCHE) -->
-  <aside class="w-full md:w-5/12 lg:w-4/12 h-full flex flex-col border-r border-slate-800 bg-slate-900/90 backdrop-blur-md z-20">
+  <aside id="editorSidebar" class="w-full md:w-5/12 lg:w-4/12 h-full flex flex-col border-r border-slate-800 bg-slate-900/90 backdrop-blur-md z-20">
     <!-- Header Sidebar -->
     <div class="p-5 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -40,7 +40,7 @@
           <p class="text-xs text-slate-400">Éditeur & Générateur de Blague</p>
         </div>
       </div>
-      <button id="btnLaunchFullscreen" onclick="openFullscreenPrank()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer">
+      <button id="btnLaunchFullscreen" onclick="openFullscreenPrank()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer">
         <span>Lancer la blague</span>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </button>
@@ -81,8 +81,8 @@
 
       <!-- Section 3 : Actions & Exportation -->
       <div class="space-y-3 pt-2">
-        <button onclick="exportJSON()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition-colors cursor-pointer">
-          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <button onclick="exportJSON()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-indigo-600/20">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
           <span>Copier le lien de partage</span>
         </button>
       </div>
@@ -90,7 +90,7 @@
     </div>
   </aside>
 
-  <!-- ZONE DE PRÉVISUALISATION (DROITE) -->
+  <!-- ZONE DE PRÉVISUALISATION / BLAGUE (DROITE) -->
   <main class="flex-1 h-full bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
     <!-- Fond décoratif avec effets de halo -->
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -201,14 +201,13 @@
     
     let currentQIndex = 0;
     let charIndex = 0;
-    let isTyping = false;
 
     // --- INITIALISATION AU CHARGEMENT ---
     window.addEventListener('DOMContentLoaded', () => {
-      // Charger depuis les paramètres d'URL si présent (partage de lien)
-      loadFromURL();
+      // Charger depuis les paramètres d'URL si présent (partage de lien) et lancer directement la blague
+      const isSharedMode = loadFromURL();
 
-      // Remplir le formulaire
+      // Remplir le formulaire de l'éditeur
       document.getElementById('cfgTitle').value = prankData.title;
       document.getElementById('cfgSubtitle').value = prankData.subtitle;
 
@@ -225,6 +224,11 @@
       renderQuestionInputs();
       resetSimulator();
       setupDodgeEvents();
+
+      // Si le lien comporte des données partagées, basculer immédiatement en mode plein écran (masquer l'éditeur)
+      if (isSharedMode) {
+        openFullscreenPrank(true);
+      }
     });
 
     // --- GESTION DU FORMULAIRE DE CONFIGURATION ---
@@ -239,7 +243,7 @@
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-slate-400 uppercase">Question ${idx + 1}</span>
             ${prankData.questions.length > 1 ? `
-              <button onclick="removeQuestion(${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-medium cursor-pointer">Supprimer</button>
+              <button onclick="removeQuestion(\${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-medium cursor-pointer">Supprimer</button>
             ` : ''}
           </div>
           <div>
@@ -280,7 +284,7 @@
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    // --- LOGIQUE D'ÉQUIVATION DU BOUTON OUI ---
+    // --- LOGIQUE D'ESQUIVE DU BOUTON OUI ---
     function setupDodgeEvents() {
       const btnYes = document.getElementById('btnYes');
 
@@ -407,18 +411,18 @@
     }
 
     // --- MODES D'AFFICHAGE & PARTAGE ---
-    function openFullscreenPrank() {
+    function openFullscreenPrank(isDirect = false) {
       // Masquer la sidebar pour basculer en mode présentation plein écran
-      const aside = document.querySelector('aside');
+      const aside = document.getElementById('editorSidebar');
       aside.classList.add('hidden');
       document.getElementById('previewBadge').classList.add('hidden');
 
-      // Ajouter un bouton discret pour revenir à l'éditeur
+      // Ajouter un bouton discret pour revenir à l'éditeur (uniquement si pas en mode externe direct)
       let exitBtn = document.getElementById('btnExitFullscreen');
-      if (!exitBtn) {
+      if (!exitBtn && !isDirect) {
         exitBtn = document.createElement('button');
         exitBtn.id = 'btnExitFullscreen';
-        exitBtn.className = 'fixed bottom-4 left-4 z-50 bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 backdrop-blur-md transition-all';
+        exitBtn.className = 'fixed bottom-4 left-4 z-50 bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 backdrop-blur-md transition-all cursor-pointer';
         exitBtn.innerHTML = '← Revenir à l\'éditeur';
         exitBtn.onclick = () => {
           aside.classList.remove('hidden');
@@ -432,42 +436,53 @@
       resetSimulator();
     }
 
-    // Exportation / Partage via l'URL encodée
+    // Exportation / Partage via l'URL encodée (support Unicode/Émojis & URL dynamique GitHub Pages)
     function exportJSON() {
-      const jsonStr = JSON.stringify(prankData);
-      const encoded = btoa(encodeURIComponent(jsonStr));
-      const shareURL = window.location.origin + window.location.pathname + '?cfg=' + encoded;
+      try {
+        const jsonStr = JSON.stringify(prankData);
+        // Encodage sécurisé compatible émojis et accents
+        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+        
+        // Utilise l'URL réelle du site (ex: GitHub Pages)
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareURL = baseUrl + '?data=' + encoded;
 
-      // Copie dans le presse-papier avec méthode de secours
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareURL).then(() => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(shareURL).then(() => {
+            alert('Lien de partage copié dans le presse-papier ! Tu peux l\'envoyer à ton ami(e).');
+          });
+        } else {
+          const dummy = document.createElement('input');
+          document.body.appendChild(dummy);
+          dummy.value = shareURL;
+          dummy.select();
+          document.execCommand('copy');
+          document.body.removeChild(dummy);
           alert('Lien de partage copié dans le presse-papier !');
-        });
-      } else {
-        const dummy = document.createElement('input');
-        document.body.appendChild(dummy);
-        dummy.value = shareURL;
-        dummy.select();
-        document.execCommand('copy');
-        document.body.removeChild(dummy);
-        alert('Lien de partage copié dans le presse-papier !');
+        }
+      } catch (e) {
+        alert("Erreur lors de la génération du lien.");
       }
     }
 
     function loadFromURL() {
       const urlParams = new URLSearchParams(window.location.search);
-      const cfgParam = urlParams.get('cfg');
-      if (cfgParam) {
+      const dataParam = urlParams.get('data') || urlParams.get('cfg');
+      
+      if (dataParam) {
         try {
-          const decoded = decodeURIComponent(atob(cfgParam));
+          // Décodage sécurisé
+          const decoded = decodeURIComponent(escape(atob(dataParam)));
           const parsed = JSON.parse(decoded);
           if (parsed && parsed.title && parsed.questions) {
             prankData = parsed;
+            return true; // Indique qu'on est en mode partagé/destinataire
           }
         } catch(e) {
           console.error("Erreur de lecture de l'URL de configuration", e);
         }
       }
+      return false;
     }
   </script>
 </body>
